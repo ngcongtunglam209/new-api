@@ -51,10 +51,10 @@ var vipSetting = VipSetting{
 	WindowDays:                90,
 	RedemptionExcludePrefixes: "gift-,test-",
 	Tiers: []VipTier{
-		{Key: "vip1", Group: "vip1", MinSpend: 5 * int64(common.QuotaPerUnit), Enabled: true},
-		{Key: "vip2", Group: "vip2", MinSpend: 15 * int64(common.QuotaPerUnit), Enabled: true},
-		{Key: "vip3", Group: "vip3", MinSpend: 40 * int64(common.QuotaPerUnit), Enabled: true},
-		{Key: "vip4", Group: "vip4", MinSpend: 100 * int64(common.QuotaPerUnit), Enabled: true},
+		{Key: "vip1", Group: "vip1", MinSpend: 20 * int64(common.QuotaPerUnit), Enabled: true},
+		{Key: "vip2", Group: "vip2", MinSpend: 100 * int64(common.QuotaPerUnit), Enabled: true},
+		{Key: "vip3", Group: "vip3", MinSpend: 400 * int64(common.QuotaPerUnit), Enabled: true},
+		{Key: "vip4", Group: "vip4", MinSpend: 1500 * int64(common.QuotaPerUnit), Enabled: true},
 	},
 }
 
