@@ -102,17 +102,28 @@ function OAuthCallback() {
     if (telegramCallback) {
       const opener = window.opener
       if (
-        !postTelegramBindResult(
-          telegramCallback,
-          opener,
-          window.location.origin
-        )
+        postTelegramBindResult(telegramCallback, opener, window.location.origin)
       ) {
-        toast.error(i18next.t('Telegram binding failed. Please try again.'))
-        const closeTimeout = window.setTimeout(() => window.close(), 1500)
-        return () => window.clearTimeout(closeTimeout)
+        window.close()
+        return
       }
-      window.close()
+      // The Telegram widget's auth-url mode navigates the page that hosted the
+      // button instead of opening a popup, so there is normally no opener to
+      // report back to. Surface the real outcome here and send the user back
+      // to where the binding started; window.close() is a no-op on a tab no
+      // script opened.
+      if (telegramCallback.kind === 'result' && telegramCallback.success) {
+        toast.success(i18next.t('Binding successful!'))
+      } else {
+        const messageKey =
+          telegramCallback.kind === 'result'
+            ? getServerErrorMessageKey({ code: telegramCallback.code })
+            : null
+        toast.error(
+          i18next.t(messageKey ?? 'Telegram binding failed. Please try again.')
+        )
+      }
+      void navigate({ to: '/profile', replace: true })
       return
     }
 

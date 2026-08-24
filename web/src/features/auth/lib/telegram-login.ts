@@ -16,34 +16,39 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-export type TelegramAuthorization = {
+export type TelegramAuthorization = Record<string, string | number> & {
   id: string | number
   auth_date: string | number
   hash: string
-  first_name?: string
-  last_name?: string
-  username?: string
-  photo_url?: string
-  lang?: string
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object'
 }
 
-function readTelegramNumber(value: unknown): string | number | null {
+function readTelegramScalar(value: unknown): string | number | null {
   if (typeof value === 'number' && Number.isFinite(value)) return value
   if (typeof value === 'string' && value.trim()) return value
   return null
 }
 
+/**
+ * Normalizes the object the Telegram login widget hands to its `onauth`
+ * callback.
+ *
+ * Every field except `hash` takes part in the HMAC the backend recomputes, so
+ * this forwards the whole payload rather than a fixed whitelist: dropping a
+ * field Telegram signed would break the signature check for every user.
+ * Injected fields need no filtering here either — they change the
+ * data-check-string, so the backend rejects the signature.
+ */
 export function pickTelegramAuthorization(
   value: unknown
 ): TelegramAuthorization | null {
   if (!isRecord(value)) return null
 
-  const id = readTelegramNumber(value.id)
-  const authDate = readTelegramNumber(value.auth_date)
+  const id = readTelegramScalar(value.id)
+  const authDate = readTelegramScalar(value.auth_date)
   const hash = typeof value.hash === 'string' ? value.hash.trim() : ''
   if (id === null || authDate === null || !hash) return null
 
@@ -52,19 +57,12 @@ export function pickTelegramAuthorization(
     auth_date: authDate,
     hash,
   }
-  const optionalFields = [
-    'first_name',
-    'last_name',
-    'username',
-    'photo_url',
-    'lang',
-  ] as const
-
-  for (const field of optionalFields) {
-    const fieldValue = value[field]
-    if (typeof fieldValue === 'string' && fieldValue) {
-      authorization[field] = fieldValue
-    }
+  for (const [field, fieldValue] of Object.entries(value)) {
+    if (field === 'id' || field === 'auth_date' || field === 'hash') continue
+    const scalar = readTelegramScalar(fieldValue)
+    // The widget payload is JSON of scalars. Anything else was not signed by
+    // Telegram and would only corrupt the data-check-string.
+    if (scalar !== null) authorization[field] = scalar
   }
 
   return authorization
