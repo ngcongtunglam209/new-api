@@ -353,6 +353,13 @@ export function SignUpForm({
               key={turnstileWidgetKey}
               siteKey={turnstileSiteKey}
               onVerify={setTurnstileToken}
+              onExpire={() => setTurnstileToken('')}
+              onError={() => {
+                // Cloudflare does not auto-retry after an error, so drop the
+                // stale token and remount a fresh widget.
+                setTurnstileToken('')
+                setTurnstileWidgetKey((current) => current + 1)
+              }}
             />
           </div>
         )}

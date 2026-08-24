@@ -525,7 +525,9 @@ func updateOptionMap(key string, value string) (err error) {
 	case "TelegramBotToken":
 		common.TelegramBotToken = value
 	case "TelegramBotName":
-		common.TelegramBotName = value
+		// The Telegram login widget expects the bare bot username; a stray "@"
+		// or surrounding whitespace makes the widget refuse to render.
+		common.TelegramBotName = strings.TrimPrefix(strings.TrimSpace(value), "@")
 	case "TurnstileSiteKey":
 		common.TurnstileSiteKey = value
 	case "TurnstileSecretKey":

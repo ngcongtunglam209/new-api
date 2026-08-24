@@ -277,6 +277,9 @@ export function CheckinCalendarCard({
             onExpire={() => {
               setTurnstileWidgetKey((v) => v + 1)
             }}
+            onError={() => {
+              setTurnstileWidgetKey((v) => v + 1)
+            }}
           />
         </div>
       </Dialog>

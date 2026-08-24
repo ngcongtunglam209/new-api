@@ -203,19 +203,23 @@ func UpdateOption(c *gin.Context) {
 			return
 		}
 	case "TurnstileCheckEnabled":
-		if option.Value == "true" && common.TurnstileSiteKey == "" {
+		// Without the secret key siteverify answers invalid-input-secret, which
+		// would reject every login, register, password reset and check-in.
+		if option.Value == "true" && (common.TurnstileSiteKey == "" || common.TurnstileSecretKey == "") {
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,
-				"message": "无法启用 Turnstile 校验，请先填入 Turnstile 校验相关配置信息！",
+				"message": "无法启用 Turnstile 校验，请先填入 Turnstile Site Key 以及 Turnstile Secret Key！",
 			})
 
 			return
 		}
 	case "TelegramOAuthEnabled":
-		if option.Value == "true" && common.TelegramBotToken == "" {
+		// The login widget is rendered from the bot name, so an empty name
+		// leaves a visible but permanently dead Telegram button.
+		if option.Value == "true" && (common.TelegramBotToken == "" || common.TelegramBotName == "") {
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,
-				"message": "无法启用 Telegram OAuth，请先填入 Telegram Bot Token！",
+				"message": "无法启用 Telegram OAuth，请先填入 Telegram Bot Token 以及 Telegram Bot Name！",
 			})
 			return
 		}

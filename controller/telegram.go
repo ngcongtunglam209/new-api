@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/i18n"
 	"github.com/QuantumNous/new-api/middleware"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/service"
@@ -258,6 +259,13 @@ func TelegramLogin(c *gin.Context) {
 			"message": err.Error(),
 			"success": false,
 		})
+		return
+	}
+	// The assertion below is single use. Reject a banned account before
+	// claiming it, otherwise the retry reports "already used" instead of the
+	// real reason.
+	if user.Status != common.UserStatusEnabled {
+		common.ApiErrorI18n(c, i18n.MsgAuthUserBanned)
 		return
 	}
 	if err := claimTelegramAuthorization(params, time.Now()); err != nil {

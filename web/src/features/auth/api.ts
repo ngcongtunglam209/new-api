@@ -42,14 +42,16 @@ import type {
 
 // User login with username and password
 export async function login(payload: LoginPayload) {
-  const turnstile = payload.turnstile ?? ''
   const res = await api.post<LoginResponse>(
-    `/api/user/login?turnstile=${turnstile}`,
+    '/api/user/login',
     {
       username: payload.username,
       password: payload.password,
     },
-    { skipAuthRefresh: true }
+    {
+      params: { turnstile: payload.turnstile ?? '' },
+      skipAuthRefresh: true,
+    }
   )
   return res.data
 }

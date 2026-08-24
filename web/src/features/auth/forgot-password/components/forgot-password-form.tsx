@@ -50,6 +50,7 @@ export function ForgotPasswordForm({
 }: React.HTMLAttributes<HTMLFormElement>) {
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
+  const [turnstileWidgetKey, setTurnstileWidgetKey] = useState(0)
 
   const {
     isTurnstileEnabled,
@@ -125,8 +126,16 @@ export function ForgotPasswordForm({
         {isTurnstileEnabled && (
           <div className='mt-2'>
             <Turnstile
+              key={turnstileWidgetKey}
               siteKey={turnstileSiteKey}
               onVerify={setTurnstileToken}
+              onExpire={() => setTurnstileToken('')}
+              onError={() => {
+                // Cloudflare does not auto-retry after an error, so drop the
+                // stale token and remount a fresh widget.
+                setTurnstileToken('')
+                setTurnstileWidgetKey((current) => current + 1)
+              }}
             />
           </div>
         )}

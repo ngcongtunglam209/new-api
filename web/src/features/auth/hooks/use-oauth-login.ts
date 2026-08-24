@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
 import { clearAuthentication, isAuthBundle } from '@/lib/api'
+import { getServerErrorMessageKey } from '@/lib/server-error-message'
 
 import { createOAuthFlow, logout, telegramLogin } from '../api'
 import {
@@ -189,15 +190,19 @@ export function useOAuthLogin(
     try {
       const response = await telegramLogin(authorization)
       if (!response.success || !isAuthBundle(response.data)) {
-        toast.error(t('Login failed'))
+        // The backend explains why (account not bound, banned, credential
+        // already used); collapsing it to "Login failed" leaves the user no
+        // way to find out they still have to bind the account first.
+        toast.error(response.message || t('Login failed'))
         return
       }
 
       setIsTelegramDialogOpen(false)
       await handleLoginSuccess(response.data, redirectTo)
       toast.success(t('Welcome back!'))
-    } catch {
-      toast.error(t('Login failed'))
+    } catch (error: unknown) {
+      const messageKey = getServerErrorMessageKey(error)
+      toast.error(messageKey ? t(messageKey) : t('Login failed'))
     } finally {
       setIsTelegramPending(false)
     }

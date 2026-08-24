@@ -21,7 +21,7 @@ import { describe, expect, test } from 'vitest'
 import { pickTelegramAuthorization } from './telegram-login'
 
 describe('Telegram login authorization', () => {
-  test('keeps only fields signed by the Telegram login contract', () => {
+  test('forwards every scalar field so the backend HMAC still matches', () => {
     expect(
       pickTelegramAuthorization({
         id: 12345,
@@ -32,8 +32,11 @@ describe('Telegram login authorization', () => {
         auth_date: 1_900_000_000,
         hash: 'signed-hash',
         lang: 'en',
+        // A field Telegram may add later is signed too, so it must survive
+        // instead of being dropped by a stale whitelist.
+        future_signed_field: 'kept',
         admin: true,
-        redirect: 'https://attacker.example',
+        profile: { nested: 'dropped' },
       })
     ).toEqual({
       id: 12345,
@@ -44,6 +47,7 @@ describe('Telegram login authorization', () => {
       auth_date: 1_900_000_000,
       hash: 'signed-hash',
       lang: 'en',
+      future_signed_field: 'kept',
     })
   })
 
