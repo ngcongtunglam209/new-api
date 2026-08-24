@@ -24,6 +24,7 @@ import { GroupBadge } from '@/components/group-badge'
 import { LongText } from '@/components/long-text'
 import { StatusBadge } from '@/components/status-badge'
 import { TableId } from '@/components/table-id'
+import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Tooltip,
@@ -190,6 +191,24 @@ export function useUsersColumns(): ColumnDef<User>[] {
       },
       size: 140,
       meta: { mobileOrder: 30 },
+    },
+    {
+      accessorKey: 'vip_tier',
+      header: t('VIP Level'),
+      cell: ({ row }) => {
+        const tier = row.getValue('vip_tier') as string | undefined
+        if (!tier) {
+          return <span className='text-muted-foreground'>-</span>
+        }
+        return (
+          <BadgeCell>
+            <Badge variant='default'>{tier.toUpperCase()}</Badge>
+          </BadgeCell>
+        )
+      },
+      enableSorting: false,
+      size: 110,
+      meta: { mobileOrder: 35 },
     },
     {
       accessorKey: 'role',

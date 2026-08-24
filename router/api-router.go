@@ -183,6 +183,21 @@ func SetApiRouter(router *gin.Engine) {
 			subscriptionAdminRoute.DELETE("/user_subscriptions/:id", controller.AdminDeleteUserSubscription)
 		}
 
+		vipRoute := apiRouter.Group("/vip")
+		vipRoute.Use(middleware.UserAuth())
+		{
+			vipRoute.GET("/tiers", controller.GetVipTiers)
+			vipRoute.GET("/self", controller.GetVipSelf)
+		}
+
+		vipAdminRoute := apiRouter.Group("/vip/admin")
+		vipAdminRoute.Use(middleware.AdminAuth())
+		{
+			vipAdminRoute.GET("/users/:id", controller.AdminGetUserVip)
+			vipAdminRoute.PUT("/users/:id", controller.AdminSetUserVipTier)
+			vipAdminRoute.DELETE("/users/:id", controller.AdminClearUserVipTier)
+		}
+
 		// Subscription payment callbacks (no auth)
 		apiRouter.POST("/subscription/epay/notify", anonymousRequestBodyLimit, controller.SubscriptionEpayNotify)
 		apiRouter.GET("/subscription/epay/notify", controller.SubscriptionEpayNotify)

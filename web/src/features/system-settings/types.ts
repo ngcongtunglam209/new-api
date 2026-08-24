@@ -251,6 +251,11 @@ export type ModelSettings = {
 }
 
 export type BillingSettings = {
+  'vip_setting.enabled': boolean
+  'vip_setting.auto_promote_enabled': boolean
+  'vip_setting.window_days': number
+  'vip_setting.redemption_exclude_prefixes': string
+  'vip_setting.tiers': string
   QuotaForNewUser: number
   PreConsumedQuota: number
   QuotaForInviter: number
