@@ -430,3 +430,29 @@ func TestAutoPromoteSweepCatchesMissedUsers(t *testing.T) {
 	assert.Equal(t, "vip2", reloadVipTestUser(t, qualified.Id).VipTier)
 	assert.Empty(t, reloadVipTestUser(t, lapsed.Id).VipTier)
 }
+
+func TestInitializeVipLockedFlagsMakesLegacyUsersVisibleToPromotion(t *testing.T) {
+	setupVipTestDB(t)
+	enableVipAutoPromote(t)
+	vip2, ok := setting.GetVipTierByKey("vip2")
+	require.True(t, ok)
+
+	user := createVipTestUser(t, "vip-legacy-null-locked", "default")
+	// AutoMigrate adds vip_locked without a default, so rows that predate the
+	// column read NULL. NULL never satisfies "vip_locked = false", which would
+	// hide every pre-existing user from the promotion and expiry sweeps.
+	require.NoError(t, DB.Exec(
+		"UPDATE users SET vip_locked = NULL, vip_spend = ?, vip_expires_at = ? WHERE id = ?",
+		vip2.MinSpend, common.GetTimestamp()+86400, user.Id).Error)
+
+	require.NoError(t, InitializeVipLockedFlags())
+
+	promoted, err := AutoPromoteDueVipTiers(100)
+	require.NoError(t, err)
+	assert.Equal(t, 1, promoted)
+
+	stored := reloadVipTestUser(t, user.Id)
+	assert.False(t, stored.VipLocked)
+	assert.Equal(t, "vip2", stored.VipTier)
+	assert.Equal(t, vip2.Group, stored.Group)
+}

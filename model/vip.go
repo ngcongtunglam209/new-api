@@ -212,6 +212,14 @@ func ClearUserVipTier(userId int) (string, error) {
 	return revertedGroup, nil
 }
 
+// InitializeVipLockedFlags backfills users.vip_locked for rows that predate the
+// column. AutoMigrate adds the boolean without a default, so existing rows read
+// NULL, and NULL fails both the "= false" predicate the sweeps rely on and the
+// scan into the bool field: every pre-existing user would be invisible to VIP.
+func InitializeVipLockedFlags() error {
+	return DB.Model(&User{}).Where("vip_locked IS NULL").Update("vip_locked", false).Error
+}
+
 // MaybeAutoPromoteVipTier promotes a user whose qualifying spend now clears a
 // higher tier. Call it after the payment transaction has committed, so the
 // group cache is refreshed against committed state.
@@ -307,7 +315,7 @@ func AutoPromoteDueVipTiers(limit int) (int, error) {
 	now := GetDBTimestamp()
 	var users []User
 	if err := DB.Select("id").
-		Where("vip_locked = ? AND vip_spend >= ? AND vip_expires_at > ?", false, lowest, now).
+		Where("COALESCE(vip_locked, ?) = ? AND vip_spend >= ? AND vip_expires_at > ?", false, false, lowest, now).
 		Order("id asc").
 		Limit(limit).
 		Find(&users).Error; err != nil {
@@ -338,7 +346,7 @@ func ExpireDueVipTiers(limit int) (int, error) {
 	now := GetDBTimestamp()
 	var users []User
 	if err := DB.Select("id").
-		Where("vip_tier <> '' AND vip_locked = ? AND vip_expires_at > 0 AND vip_expires_at <= ?", false, now).
+		Where("vip_tier <> '' AND COALESCE(vip_locked, ?) = ? AND vip_expires_at > 0 AND vip_expires_at <= ?", false, false, now).
 		Order("vip_expires_at asc, id asc").
 		Limit(limit).
 		Find(&users).Error; err != nil {
