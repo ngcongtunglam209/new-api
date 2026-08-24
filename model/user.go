@@ -106,6 +106,12 @@ type User struct {
 	Setting          string                     `json:"setting" gorm:"type:text;column:setting"`
 	Remark           string                     `json:"remark,omitempty" gorm:"type:varchar(255)" validate:"max=255"`
 	StripeCustomer   string                     `json:"stripe_customer" gorm:"type:varchar(64);column:stripe_customer;index"`
+	VipTier          string                     `json:"vip_tier" gorm:"type:varchar(32);default:''"`
+	VipSpend         int64                      `json:"vip_spend" gorm:"type:bigint;default:0"`      // qualifying spend inside the current window
+	VipTotalPaid     int64                      `json:"vip_total_paid" gorm:"type:bigint;default:0"` // lifetime paid, reporting only
+	VipExpiresAt     int64                      `json:"vip_expires_at" gorm:"type:bigint;default:0"`
+	VipPrevGroup     string                     `json:"vip_prev_group" gorm:"type:varchar(64);default:''"`
+	VipLocked        bool                       `json:"vip_locked"` // admin-pinned tier, exempt from expiry
 	CreatedAt        int64                      `json:"created_at" gorm:"autoCreateTime;column:created_at"`
 	LastLoginAt      int64                      `json:"last_login_at" gorm:"default:0;column:last_login_at"`
 	AuthVersion      int64                      `json:"-" gorm:"type:bigint;not null;default:1;column:auth_version"`

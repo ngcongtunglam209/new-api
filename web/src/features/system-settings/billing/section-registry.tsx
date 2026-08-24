@@ -21,6 +21,7 @@ import { parseCurrencyDisplayType } from '@/lib/currency'
 import { CheckinSettingsSection } from '../general/checkin-settings-section'
 import { PricingSection } from '../general/pricing-section'
 import { QuotaSettingsSection } from '../general/quota-settings-section'
+import { VipSettingsSection } from '../general/vip-settings-section'
 import { PaymentSettingsSection } from '../integrations/payment-settings-section'
 import { RatioSettingsCard } from '../models/ratio-settings-card'
 import type { BillingSettings } from '../types'
@@ -125,6 +126,23 @@ const BILLING_SECTIONS = [
         groupDefaults={getGroupDefaults(settings)}
         toolPricesDefault={settings['tool_price_setting.prices']}
         visibleTabs={['groups']}
+      />
+    ),
+  },
+  {
+    id: 'vip',
+    titleKey: 'VIP Levels',
+    build: (settings: BillingSettings) => (
+      <VipSettingsSection
+        defaultValues={{
+          'vip_setting.enabled': settings['vip_setting.enabled'] ?? false,
+          'vip_setting.auto_promote_enabled':
+            settings['vip_setting.auto_promote_enabled'] ?? false,
+          'vip_setting.window_days': settings['vip_setting.window_days'] ?? 90,
+          'vip_setting.redemption_exclude_prefixes':
+            settings['vip_setting.redemption_exclude_prefixes'] ?? '',
+          'vip_setting.tiers': settings['vip_setting.tiers'] ?? '[]',
+        }}
       />
     ),
   },
