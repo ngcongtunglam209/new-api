@@ -59,11 +59,25 @@ services:
 #      - clickhouse  # Uncomment if using ClickHouse for LOG_SQL_DSN
     networks:
       - new-api-network
+      - llm-net
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/status | grep -o '\"success\":\\s*true' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
+
+  cliproxyapi:
+    image: eceasy/cli-proxy-api:latest
+    container_name: cliproxyapi
+    restart: always
+    volumes:
+      - ./cliproxy/config.yaml:/CLIProxyAPI/config.yaml
+      - ./cliproxy/auth:/root/.cli-proxy-api
+    ports:
+      - "127.0.0.1:8317:8317"  # localhost only; new-api reaches it as http://cliproxyapi:8317 over the docker network
+    networks:
+      - new-api-network
+      - llm-net
 
   redis:
     image: redis:latest
@@ -127,3 +141,6 @@ volumes:
 networks:
   new-api-network:
     driver: bridge
+  # Shared bridge for external LLM backends (created once: docker network create llm-net)
+  llm-net:
+    external: true

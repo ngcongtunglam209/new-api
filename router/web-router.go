@@ -32,6 +32,15 @@ func SetWebRouter(router *gin.Engine, assets WebAssets) {
 			controller.RelayNotFound(c)
 			return
 		}
+		// Only document navigations may fall through to the SPA shell. Any other
+		// method on an unmatched path is an API client pointed at the wrong base
+		// URL (for example a Codex `POST /responses` whose base_url is missing
+		// `/v1`); answering that with index.html and HTTP 200 turns the
+		// misconfiguration into a silent dead stream instead of a readable 404.
+		if c.Request.Method != http.MethodGet && c.Request.Method != http.MethodHead {
+			controller.RelayNotFound(c)
+			return
+		}
 		c.Header("Cache-Control", "no-cache")
 		c.Data(http.StatusOK, "text/html; charset=utf-8", assets.IndexPage)
 	})
